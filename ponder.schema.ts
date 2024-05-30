@@ -1,8 +1,12 @@
 import { createSchema } from "@ponder/core";
 
 export default createSchema((p) => ({
-  Example: p.createTable({
+  Transaction: p.createTable({
     id: p.string(),
-    name: p.string().optional(),
-  }),
+    type: p.string(),
+    senderFid: p.bigint(),
+    castHash: p.string(),
+    amount: p.bigint(),
+    timestamp: p.bigint(),
+  })
 }));
