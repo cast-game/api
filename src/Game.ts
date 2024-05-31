@@ -10,40 +10,40 @@ import {
 const neynar = new NeynarAPIClient(process.env.NEYNAR_API_KEY!);
 
 ponder.on("Game:GameStarted", async ({ event, context }) => {
-	const { Round } = context.db;
-	console.log(event.args);
+	// const { Round } = context.db;
+	// console.log(event.args);
 
-	const prizePool = await getTokenBalance(context.contracts.Game.address);
-	const channelId = await getChannelId();
+	// const prizePool = await getTokenBalance(context.contracts.Game.address);
+	// const channelId = await getChannelId();
 
-	await Round.create({
-		id: channelId,
-		data: {
-			prizePool,
-			startTime: event.log.blockNumber,
-			tradingEndTime: event.args.tradingEndTime,
-			endTime: event.args.endTime,
-			winnerCastHash: "",
-		},
-	});
+	// await Round.create({
+	// 	id: channelId,
+	// 	data: {
+	// 		prizePool,
+	// 		startTime: event.log.blockNumber,
+	// 		tradingEndTime: event.args.tradingEndTime,
+	// 		endTime: event.args.endTime,
+	// 		winnerCastHash: "",
+	// 	},
+	// });
 });
 
 ponder.on("Game:GameEnded", async ({ event, context }) => {
-	const { Round } = context.db;
-	console.log(event.args);
+	// const { Round } = context.db;
+	// console.log(event.args);
 
-	const channelId = await getChannelId();
+	// const channelId = await getChannelId();
 
-	await Round.update({
-		id: channelId,
-		data: {
-			winnerCastHash: event.args.castHash,
-		},
-	});
+	// await Round.update({
+	// 	id: channelId,
+	// 	data: {
+	// 		winnerCastHash: event.args.castHash,
+	// 	},
+	// });
 });
 
 ponder.on("Game:Purchased", async ({ event, context }) => {
-	const { Transaction, Round, Ticket, User } = context.db;
+	const { Transaction, Ticket, User } = context.db;
 	console.log(event.args);
 
 	const [channelId, feeAmount, isHolder] = await Promise.all([
@@ -55,13 +55,6 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 	]);
 
 	await Promise.all([
-		// Increase prize pool
-		await Round.update({
-			id: channelId,
-			data: ({ current }) => ({
-				prizePool: current.prizePool + event.args.price,
-			}),
-		}),
 		// Update ticket supply + holders
 		await Ticket.upsert({
 			id: event.args.castHash,
@@ -129,7 +122,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 });
 
 ponder.on("Game:Sold", async ({ event, context }) => {
-	const { User, Ticket, Transaction, Round } = context.db;
+	const { User, Ticket, Transaction } = context.db;
 	console.log(event.args);
 
 	const [channelId, feeAmount, ticketBalance] = await Promise.all([
@@ -139,13 +132,6 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 	]);
 
 	await Promise.all([
-		// Decrease prize pool
-		await Round.update({
-			id: channelId,
-			data: ({ current }) => ({
-				prizePool: current.prizePool - event.args.price,
-			}),
-		}),
 		// Update ticket supply + holders
 		await Ticket.update({
 			id: event.args.castHash,
