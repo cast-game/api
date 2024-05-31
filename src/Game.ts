@@ -37,9 +37,7 @@ ponder.on("Game:GameEnded", async ({ event, context }) => {
 	});
 });
 
-ponder.on("Game:OwnershipTransferred", async ({ event, context }) => {
-	console.log(event.args);
-});
+// ponder.on("Game:OwnershipTransferred", async ({ event, context }) => {});
 
 ponder.on("Game:Purchased", async ({ event, context }) => {
 	const { Transaction, Round } = context.db;
@@ -47,9 +45,14 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 
 	const res = await neynar.fetchBulkUsersByEthereumAddress([event.args.buyer]);
 
-	// get erc20 transfer amount from tx
+	const channelId = await getChannelId();
 
-	// TODO: increase prize pool
+	await Round.update({
+		id: channelId,
+		data: ({ current }) => ({
+			prizePool: current.prizePool + event.args.price,
+		}),
+	});
 
 	await Transaction.create({
 		id: event.log.id,
@@ -64,5 +67,6 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 });
 
 ponder.on("Game:Sold", async ({ event, context }) => {
+	const { Transaction, Round } = context.db;
 	console.log(event.args);
 });
