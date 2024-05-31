@@ -29,6 +29,16 @@ const walletClient = createWalletClient({
 	account,
 });
 
+export const getFeeAmount = async (amount: bigint) => {
+	const feePercent = await client.readContract({
+		address: gameAddress,
+		abi: GameAbi,
+		functionName: "feePercent",
+	});
+
+	return (amount * feePercent) / BigInt(100);
+};
+
 export const getChannelId = async () => {
 	return await client.readContract({
 		address: gameAddress,
