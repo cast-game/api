@@ -24,6 +24,17 @@ ponder.on("Game:GameStarted", async ({ event, context }) => {
 });
 
 ponder.on("Game:GameEnded", async ({ event, context }) => {
+	const { Round } = context.db;
+	console.log(event.args);
+
+	const channelId = await getChannelId();
+
+	await Round.update({
+		id: channelId,
+		data: {
+			winnerCastHash: event.args.castHash,
+		},
+	});
 });
 
 ponder.on("Game:OwnershipTransferred", async ({ event, context }) => {
