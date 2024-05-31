@@ -1,6 +1,13 @@
 import { createSchema } from "@ponder/core";
 
 export default createSchema((p) => ({
+  User: p.createTable({
+    // evm address
+    id: p.bigint(),
+    ticketBalance: p.bigint(),
+    referralFeesEarned: p.bigint(),
+    creatorFeesEarned: p.bigint(),
+  }),
   Transaction: p.createTable({
     id: p.string(),
     type: p.string(),
