@@ -18,7 +18,7 @@ export default createSchema((p) => ({
   Transaction: p.createTable({
     id: p.string(),
     type: p.string(),
-    senderFid: p.bigint(),
+    sender: p.string(),
     castHash: p.string(),
     amount: p.bigint(),
     price: p.bigint(),
