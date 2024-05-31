@@ -13,7 +13,7 @@
   "dependencies": {
     "@neynar/nodejs-sdk": "^1.28.0",
     "@ponder/core": "^0.4.32",
-    "viem": "^1.19.3"
+    "viem": "^2.13.2"
   },
   "devDependencies": {
     "@types/node": "^20.9.0",
