@@ -1,12 +1,6 @@
 import { ponder } from "@/generated";
-import { NeynarAPIClient } from "@neynar/nodejs-sdk";
-import {
-  getChannelId,
-  getFeeAmount,
-  getTokenBalance,
-} from "./viem";
-
-const neynar = new NeynarAPIClient(process.env.NEYNAR_API_KEY!);
+import { getChannelId, getFeeAmount, getTokenBalance } from "./viem";
+import { getActiveTier } from "./api";
 
 ponder.on("Game:GameStarted", async ({ event, context }) => {
   // const { Round } = context.db;
@@ -56,6 +50,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
         channelId,
         supply: event.args.amount,
         holders: [event.args.buyer],
+        activeTier: await getActiveTier(event.args.buyer),
       },
       update: ({ current }) => ({
         supply: current.supply + event.args.amount,

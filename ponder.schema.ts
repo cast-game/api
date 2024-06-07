@@ -14,6 +14,7 @@ export default createSchema((p) => ({
     channelId: p.string(),
     supply: p.bigint(),
     holders: p.string().list(),
+    activeTier: p.bigint(),
   }),
   Transaction: p.createTable({
     id: p.string(),
