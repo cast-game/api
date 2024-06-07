@@ -13,7 +13,7 @@ export default createSchema((p) => ({
     id: p.string(),
     channelId: p.string(),
     supply: p.bigint(),
-    holdersCount: p.bigint()
+    holders: p.string().list(),
   }),
   Transaction: p.createTable({
     id: p.string(),
