@@ -67,19 +67,3 @@ export const setTokenURI = async (tokenId: bigint, ipfsHash: string) => {
 	});
 	await walletClient.writeContract(request);
 };
-
-export const getTicketBalance = async (account: string, castHash: string) => {
-	const tokenId = await client.readContract({
-		address: ticketsAddress,
-		abi: TicketsAbi,
-		functionName: "castTokenId",
-		args: [castHash],
-	});
-
-	return await client.readContract({
-		address: ticketsAddress,
-		abi: TicketsAbi,
-		functionName: "balanceOf",
-		args: [account as `0x${string}`, tokenId],
-	});
-};
