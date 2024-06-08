@@ -45,7 +45,14 @@ export const getChannelId = async () => {
 	});
 };
 
-export const setTokenURI = async (tokenId: bigint, ipfsHash: string) => {
+export const setTokenURI = async (castHash: string, ipfsHash: string) => {
+	const tokenId = await client.readContract({
+		address: ticketsAddress,
+		abi: TicketsAbi,
+		functionName: "castTokenId",
+		args: [castHash],
+	});
+
 	const { request } = await client.simulateContract({
 		account,
 		address: ticketsAddress,
