@@ -16,7 +16,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		getChannelId(),
 		getFeeAmount(event.args.price),
 		!!(await User.findUnique({
-			id: `${event.args.buyer}:${event.args.castHash}`,
+			id: `${event.args.buyer.toLowerCase()}:${event.args.castHash}`,
 		})),
 	]);
 
@@ -61,7 +61,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		}),
 		// Increase buyer balance
 		await User.upsert({
-			id: `${event.args.buyer}:${event.args.castHash}`,
+			id: `${event.args.buyer.toLowerCase()}:${event.args.castHash}`,
 			create: {
 				ticketBalance: event.args.amount,
 				referralFeesEarned: 0n,
@@ -73,7 +73,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		}),
 		// Track creator fees
 		await User.upsert({
-			id: `${event.args.castCreator}:${event.args.castHash}`,
+			id: `${event.args.castCreator.toLowerCase()}:${event.args.castHash}`,
 			create: {
 				ticketBalance: 0n,
 				referralFeesEarned: 0n,
@@ -85,7 +85,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		}),
 		// Track referral fees
 		await User.upsert({
-			id: `${event.args.referrer}:${event.args.castHash}`,
+			id: `${event.args.referrer.toLowerCase()}:${event.args.castHash}`,
 			create: {
 				ticketBalance: 0n,
 				referralFeesEarned: feeAmount,
@@ -117,7 +117,7 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 		getChannelId(),
 		getFeeAmount(event.args.price),
 		await User.findUnique({
-			id: `${event.args.seller}:${event.args.castHash}`,
+			id: `${event.args.seller.toLowerCase()}:${event.args.castHash}`,
 		}),
 	]);
 
@@ -135,21 +135,21 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 		}),
 		// Decrease seller balance
 		await User.update({
-			id: `${event.args.seller}:${event.args.castHash}`,
+			id: `${event.args.seller.toLowerCase()}:${event.args.castHash}`,
 			data: ({ current }) => ({
 				ticketBalance: current.ticketBalance - event.args.amount,
 			}),
 		}),
 		// Track creator fees
 		await User.update({
-			id: `${event.args.castCreator}:${event.args.castHash}`,
+			id: `${event.args.castCreator.toLowerCase()}:${event.args.castHash}`,
 			data: ({ current }) => ({
 				creatorFeesEarned: current.creatorFeesEarned + feeAmount,
 			}),
 		}),
 		// Track referral fees
 		await User.upsert({
-			id: `${event.args.referrer}:${event.args.castHash}`,
+			id: `${event.args.referrer.toLowerCase()}:${event.args.castHash}`,
 			create: {
 				ticketBalance: 0n,
 				referralFeesEarned: feeAmount,
