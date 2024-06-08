@@ -13,6 +13,7 @@
   "dependencies": {
     "@duneanalytics/client-sdk": "^0.1.5",
     "@neynar/nodejs-sdk": "^1.28.0",
+    "@pinata/sdk": "^2.1.0",
     "@ponder/core": "^0.4.32",
     "viem": "^2.13.2"
   },
