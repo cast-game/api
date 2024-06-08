@@ -206,31 +206,6 @@ export const GameAbi = [
 	},
 	{
 		type: "event",
-		name: "GameEnded",
-		inputs: [
-			{
-				name: "castHash",
-				type: "string",
-				indexed: true,
-				internalType: "string",
-			},
-			{
-				name: "winningCreator",
-				type: "address",
-				indexed: true,
-				internalType: "address",
-			},
-			{
-				name: "ticketHolders",
-				type: "address[]",
-				indexed: false,
-				internalType: "address[]",
-			},
-		],
-		anonymous: false,
-	},
-	{
-		type: "event",
 		name: "GameStarted",
 		inputs: [
 			{
@@ -278,16 +253,16 @@ export const GameAbi = [
 				internalType: "address",
 			},
 			{
-				name: "castHash",
-				type: "string",
-				indexed: true,
-				internalType: "string",
-			},
-			{
 				name: "castCreator",
 				type: "address",
 				indexed: true,
 				internalType: "address",
+			},
+			{
+				name: "castHash",
+				type: "string",
+				indexed: false,
+				internalType: "string",
 			},
 			{
 				name: "referrer",
@@ -321,16 +296,16 @@ export const GameAbi = [
 				internalType: "address",
 			},
 			{
-				name: "castHash",
-				type: "string",
-				indexed: true,
-				internalType: "string",
-			},
-			{
 				name: "castCreator",
 				type: "address",
 				indexed: true,
 				internalType: "address",
+			},
+			{
+				name: "castHash",
+				type: "string",
+				indexed: false,
+				internalType: "string",
 			},
 			{
 				name: "referrer",
