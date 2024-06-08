@@ -48,6 +48,13 @@ export const GameAbi = [
 	},
 	{
 		type: "function",
+		name: "creatorFeePercent",
+		inputs: [],
+		outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+		stateMutability: "view",
+	},
+	{
+		type: "function",
 		name: "endTime",
 		inputs: [],
 		outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
@@ -196,13 +203,6 @@ export const GameAbi = [
 		],
 		outputs: [],
 		stateMutability: "nonpayable",
-	},
-	{
-		type: "function",
-		name: "winnningCreatorFeePercent",
-		inputs: [],
-		outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-		stateMutability: "view",
 	},
 	{
 		type: "event",
