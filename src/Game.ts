@@ -1,35 +1,6 @@
 import { ponder } from "@/generated";
-import { getChannelId, getFeeAmount, getTokenBalance } from "./viem";
+import { getChannelId, getFeeAmount } from "./viem";
 import { getActiveTier } from "./api";
-
-ponder.on("Game:GameStarted", async ({ event, context }) => {
-  // const { Round } = context.db;
-  // console.log(event.args);
-  // const prizePool = await getTokenBalance(context.contracts.Game.address);
-  // const channelId = await getChannelId();
-  // await Round.create({
-  // 	id: channelId,
-  // 	data: {
-  // 		prizePool,
-  // 		startTime: event.log.blockNumber,
-  // 		tradingEndTime: event.args.tradingEndTime,
-  // 		endTime: event.args.endTime,
-  // 		winnerCastHash: "",
-  // 	},
-  // });
-});
-
-ponder.on("Game:GameEnded", async ({ event, context }) => {
-  // const { Round } = context.db;
-  // console.log(event.args);
-  // const channelId = await getChannelId();
-  // await Round.update({
-  // 	id: channelId,
-  // 	data: {
-  // 		winnerCastHash: event.args.castHash,
-  // 	},
-  // });
-});
 
 ponder.on("Game:Purchased", async ({ event, context }) => {
   const { Transaction, Ticket, User } = context.db;
