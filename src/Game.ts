@@ -11,6 +11,11 @@ const pinata = new pinataSDK({
 ponder.on("Game:Purchased", async ({ event, context }) => {
 	const { Transaction, Ticket, User } = context.db;
 
+	const { cast } = await neynar.lookUpCastByHashOrWarpcastUrl(
+		event.args.castHash,
+		"hash"
+	);
+
 	const [tokenExists, channelId, feeAmount, isHolder] = await Promise.all([
 		Ticket.findUnique({ id: event.args.castHash }),
 		getChannelId(),
@@ -21,10 +26,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 	]);
 
 	if (!tokenExists) {
-		const { cast } = await neynar.lookUpCastByHashOrWarpcastUrl(
-			event.args.castHash,
-			"hash"
-		);
+		
 
 		const metadata = await pinata.pinJSONToIPFS({
 			name: `Cast by ${cast.author.username}`,
