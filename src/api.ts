@@ -1,14 +1,14 @@
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { priceTiers } from "./constants";
+import { Cast } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 
 export const neynar = new NeynarAPIClient(process.env.NEYNAR_API_KEY!);
 
-export const getActiveTier = async (address: string) => {
-  const res = await neynar.fetchBulkUsersByEthereumAddress([address]);
-  const user = res[address]![0]!;
+export const getActiveTier = async (cast: Cast) => {
+  const user = cast.author;
 
-  let tier;
-  if (user.follower_count < 400) {
+	let tier;
+	if (user.follower_count < 400) {
 		tier = 0;
 	} else if (user.follower_count > 400 && user.follower_count < 1000) {
 		tier = 1;
@@ -34,4 +34,3 @@ export function getPrice(tier: number, supply: number): number {
 
 	return Math.ceil(pricePerShare);
 }
-

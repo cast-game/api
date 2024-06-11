@@ -52,7 +52,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 				channelId,
 				supply: event.args.amount,
 				holders: [event.args.buyer],
-				activeTier: await getActiveTier(event.args.castCreator),
+				activeTier: await getActiveTier(cast),
 			},
 			update: ({ current }) => ({
 				supply: current.supply + event.args.amount,
