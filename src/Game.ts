@@ -22,22 +22,22 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		getFeeAmount(event.args.price),
 	]);
 
-	if (!tokenExists) {
-		const metadata = await pinata.pinJSONToIPFS({
-			name: `Cast by ${cast.author.username}`,
-			description: `A cast.game ticket purchased via Farcaster. - https://warpcast.com/${cast.author.username}/${cast.hash}`,
-			image: `https://client.warpcast.com/v2/cast-image?castHash=${cast.hash}`,
-			properties: {
-				cast_hash: cast.hash,
-				author_fid: cast.author.fid.toString(),
-			},
-		});
+	// if (!tokenExists) {
+	// 	const metadata = await pinata.pinJSONToIPFS({
+	// 		name: `Cast by ${cast.author.username}`,
+	// 		description: `A cast.game ticket purchased via Farcaster. - https://warpcast.com/${cast.author.username}/${cast.hash}`,
+	// 		image: `https://client.warpcast.com/v2/cast-image?castHash=${cast.hash}`,
+	// 		properties: {
+	// 			cast_hash: cast.hash,
+	// 			author_fid: cast.author.fid.toString(),
+	// 		},
+	// 	});
 
-		await setTokenURI(event.args.castHash, metadata.IpfsHash);
-		console.log(
-			`Metadata: set ${metadata.IpfsHash} for castHash: ${event.args.castHash}`
-		);
-	}
+	// 	await setTokenURI(event.args.castHash, metadata.IpfsHash);
+	// 	console.log(
+	// 		`Metadata: set ${metadata.IpfsHash} for castHash: ${event.args.castHash}`
+	// 	);
+	// }
 
 	await Promise.all([
 		// Update ticket supply
