@@ -16,18 +16,13 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		"hash"
 	);
 
-	const [tokenExists, channelId, feeAmount, isHolder] = await Promise.all([
+	const [tokenExists, channelId, feeAmount] = await Promise.all([
 		Ticket.findUnique({ id: event.args.castHash }),
 		getChannelId(),
 		getFeeAmount(event.args.price),
-		!!(await User.findUnique({
-			id: `${event.args.buyer.toLowerCase()}:${event.args.castHash}`,
-		})),
 	]);
 
 	if (!tokenExists) {
-		
-
 		const metadata = await pinata.pinJSONToIPFS({
 			name: `Cast by ${cast.author.username}`,
 			description: `A cast.game ticket purchased via Farcaster. - https://warpcast.com/${cast.author.username}/${cast.hash}`,
@@ -56,7 +51,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 			},
 			update: ({ current }) => ({
 				supply: current.supply + event.args.amount,
-				holders: isHolder
+				holders: current.holders.includes(event.args.buyer)
 					? current.holders
 					: [...current.holders, event.args.buyer],
 			}),
