@@ -13,9 +13,9 @@ export default createConfig({
   contracts: {
     Game: {
       abi: GameAbi,
-      address: "0x116affed0a9e9dfb5ee4dd769a8b8a2a476f9927",
+      address: "0xCAc80268aBae7307C2Aa9C169251EBa876303a51",
       network: "baseSepolia",
-      startBlock: 11043574,
+      startBlock: 13027292,
     },
   },
 });
