@@ -22,6 +22,8 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		getFeeAmount(event.args.price),
 	]);
 
+	// TODO: upload metadata
+	
 	// if (!tokenExists) {
 	// 	const metadata = await pinata.pinJSONToIPFS({
 	// 		name: `Cast by ${cast.author.username}`,

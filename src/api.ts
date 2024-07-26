@@ -32,5 +32,5 @@ export function getPrice(tier: number, supply: number): number {
 	const pricePerShare =
 		priceTier.startingPrice * Math.exp(growthRate * newSupply);
 
-	return Math.ceil(pricePerShare);
+	return Math.ceil(pricePerShare * 100000) / 100000;
 }

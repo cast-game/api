@@ -2,7 +2,6 @@ import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
 import { TicketsAbi } from "../abis/TicketsAbi";
-import { DegenAbi } from "../abis/DegenAbi";
 import { GameAbi } from "../abis/GameAbi";
 
 const useMainnet = process.env.USE_MAINNET === "true";
