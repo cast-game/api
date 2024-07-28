@@ -2,6 +2,7 @@ import { ponder } from "@/generated";
 import { getChannelId, getFeeAmount, setTokenURI } from "./viem";
 import { getActiveTier, neynar } from "./api";
 import pinataSDK from "@pinata/sdk";
+import { zeroAddress } from "viem";
 
 const pinata = new pinataSDK({
 	pinataApiKey: process.env.PINATA_API_KEY,
@@ -23,11 +24,11 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 	]);
 
 	// TODO: upload metadata
-	
+
 	// if (!tokenExists) {
 	// 	const metadata = await pinata.pinJSONToIPFS({
-	// 		name: `Cast by ${cast.author.username}`,
-	// 		description: `A cast.game ticket purchased via Farcaster. - https://warpcast.com/${cast.author.username}/${cast.hash}`,
+	// 		name: `Cast by ${cast.author.username} (demo)`,
+	// 		description: `A (test) cast.game ticket purchased via Farcaster. - https://warpcast.com/${cast.author.username}/${cast.hash}`,
 	// 		image: `https://client.warpcast.com/v2/cast-image?castHash=${cast.hash}`,
 	// 		properties: {
 	// 			cast_hash: cast.hash,
@@ -41,7 +42,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 	// 	);
 	// }
 
-	await Promise.all([
+	let reqs = [
 		// Update ticket supply
 		await Ticket.upsert({
 			id: event.args.castHash,
@@ -82,18 +83,6 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 				creatorFeesEarned: current.creatorFeesEarned + feeAmount,
 			}),
 		}),
-		// Track referral fees
-		await User.upsert({
-			id: `${event.args.referrer.toLowerCase()}:${event.args.castHash}`,
-			create: {
-				ticketBalance: 0n,
-				referralFeesEarned: feeAmount,
-				creatorFeesEarned: 0n,
-			},
-			update: ({ current }) => ({
-				referralFeesEarned: current.referralFeesEarned + feeAmount,
-			}),
-		}),
 		// Log transaction
 		await Transaction.create({
 			id: event.log.id,
@@ -106,7 +95,24 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 				timestamp: BigInt(new Date().getTime()),
 			},
 		}),
-	]);
+	];
+	if (event.args.referrer !== zeroAddress) {
+		reqs.push(
+			// Track referral fees
+			await User.upsert({
+				id: `${event.args.referrer.toLowerCase()}:${event.args.castHash}`,
+				create: {
+					ticketBalance: 0n,
+					referralFeesEarned: feeAmount,
+					creatorFeesEarned: 0n,
+				},
+				update: ({ current }) => ({
+					referralFeesEarned: current.referralFeesEarned + feeAmount,
+				}),
+			})
+		);
+	}
+	await Promise.all(reqs);
 });
 
 ponder.on("Game:Sold", async ({ event, context }) => {
@@ -120,7 +126,7 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 		}),
 	]);
 
-	await Promise.all([
+	let reqs = [
 		// Update ticket supply + holders
 		await Ticket.update({
 			id: event.args.castHash,
@@ -146,18 +152,6 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 				creatorFeesEarned: current.creatorFeesEarned + feeAmount,
 			}),
 		}),
-		// Track referral fees
-		await User.upsert({
-			id: `${event.args.referrer.toLowerCase()}:${event.args.castHash}`,
-			create: {
-				ticketBalance: 0n,
-				referralFeesEarned: feeAmount,
-				creatorFeesEarned: 0n,
-			},
-			update: ({ current }) => ({
-				referralFeesEarned: current.referralFeesEarned + feeAmount,
-			}),
-		}),
 		// Log transaction
 		await Transaction.create({
 			id: event.log.id,
@@ -170,5 +164,19 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 				timestamp: BigInt(new Date().getTime()),
 			},
 		}),
-	]);
+	];
+
+	if (event.args.referrer !== zeroAddress) {
+		reqs.push(
+			// Track referral fees
+			await User.update({
+				id: `${event.args.referrer.toLowerCase()}:${event.args.castHash}`,
+				data: ({ current }) => ({
+					referralFeesEarned: current.referralFeesEarned + feeAmount,
+				}),
+			})
+		);
+	}
+
+	await Promise.all(reqs);
 });
