@@ -9,6 +9,17 @@ const pinata = new pinataSDK({
 	pinataSecretApiKey: process.env.PINATA_API_SECRET,
 });
 
+ponder.on("Game:GameStarted", async ({ event, context }) => {
+	const { GameStats } = context.db;
+
+	await GameStats.create({
+		id: 0n,
+		data: {
+			users: [],
+		},
+	});
+});
+
 ponder.on("Game:Purchased", async ({ event, context }) => {
 	const { Transaction, Ticket, User, GameStats } = context.db;
 
@@ -42,29 +53,8 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 	// 	);
 	// }
 
-	// Update user count
-	let newUsers: number = 0;
-	[event.args.buyer, event.args.castCreator, event.args.referrer].forEach(
-		async (address) => {
-			if (address === zeroAddress) return;
-			const user = await User.findMany({
-				where: { id: { startsWith: `${address.toLowerCase()}:` } },
-			});
-			if (user.items.length === 0) newUsers++;
-		}
-	);
-
-	await GameStats.upsert({
-		id: 0n,
-		create: {
-			userCount: BigInt(newUsers),
-		},
-		update: ({ current }) => ({
-			userCount: current.userCount + BigInt(newUsers),
-		}),
-	});
-
 	let reqs = [
+		(await GameStats.findUnique({ id: 0n })) as any,
 		// Update ticket supply
 		await Ticket.upsert({
 			id: event.args.castHash,
@@ -135,11 +125,38 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		);
 	}
 
-	await Promise.all(reqs);
+	const [gameStats] = await Promise.all(reqs);
+	if (!gameStats.users.includes(event.args.buyer)) {
+		await GameStats.update({
+			id: 0n,
+			data: ({ current }) => ({
+				users: [...current.users, event.args.buyer],
+			}),
+		});
+	}
+	if (!gameStats.users.includes(event.args.castCreator)) {
+		await GameStats.update({
+			id: 0n,
+			data: ({ current }) => ({
+				users: [...current.users, event.args.castCreator],
+			}),
+		});
+	}
+	if (
+		event.args.referrer !== zeroAddress &&
+		!gameStats.users.includes(event.args.referrer)
+	) {
+		await GameStats.update({
+			id: 0n,
+			data: ({ current }) => ({
+				users: [...current.users, event.args.referrer],
+			}),
+		});
+	}
 });
 
 ponder.on("Game:Sold", async ({ event, context }) => {
-	const { User, Ticket, Transaction, GameStats } = context.db;
+	const { User, Ticket, Transaction } = context.db;
 
 	const [channelId, feeAmount, user] = await Promise.all([
 		getChannelId(),
@@ -148,21 +165,6 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 			id: `${event.args.seller.toLowerCase()}:${event.args.castHash}`,
 		}),
 	]);
-
-	// Update user count
-	if (event.args.referrer !== zeroAddress) {
-		const referrer = await User.findMany({
-			where: { id: { startsWith: `${event.args.referrer.toLowerCase()}:` } },
-		});
-		if (referrer.items.length === 0) {
-			await GameStats.update({
-				id: 0n,
-				data: ({ current }) => ({
-					userCount: current.userCount + 1n,
-				}),
-			});
-		}
-	}
 
 	let reqs = [
 		// Update ticket supply + holders

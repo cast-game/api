@@ -3,7 +3,7 @@ import { createSchema } from "@ponder/core";
 export default createSchema((p) => ({
 	GameStats: p.createTable({
 		id: p.bigint(),
-		userCount: p.bigint(),
+		users: p.string().list(),
 	}),
 	User: p.createTable({
 		// address:castHash
