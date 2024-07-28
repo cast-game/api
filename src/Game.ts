@@ -10,7 +10,7 @@ const pinata = new pinataSDK({
 });
 
 ponder.on("Game:Purchased", async ({ event, context }) => {
-	const { Transaction, Ticket, User } = context.db;
+	const { Transaction, Ticket, User, GameStats } = context.db;
 
 	const { cast } = await neynar.lookUpCastByHashOrWarpcastUrl(
 		event.args.castHash,
@@ -41,6 +41,28 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 	// 		`Metadata: set ${metadata.IpfsHash} for castHash: ${event.args.castHash}`
 	// 	);
 	// }
+
+	// Update user count
+	let newUsers: number = 0;
+	[event.args.buyer, event.args.castCreator, event.args.referrer].forEach(
+		async (address) => {
+			if (address === zeroAddress) return;
+			const user = await User.findMany({
+				where: { id: { startsWith: `${address.toLowerCase()}:` } },
+			});
+			if (user.items.length === 0) newUsers++;
+		}
+	);
+
+	await GameStats.upsert({
+		id: 0n,
+		create: {
+			userCount: BigInt(newUsers),
+		},
+		update: ({ current }) => ({
+			userCount: current.userCount + BigInt(newUsers),
+		}),
+	});
 
 	let reqs = [
 		// Update ticket supply
@@ -112,11 +134,12 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 			})
 		);
 	}
+
 	await Promise.all(reqs);
 });
 
 ponder.on("Game:Sold", async ({ event, context }) => {
-	const { User, Ticket, Transaction } = context.db;
+	const { User, Ticket, Transaction, GameStats } = context.db;
 
 	const [channelId, feeAmount, user] = await Promise.all([
 		getChannelId(),
@@ -125,6 +148,21 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 			id: `${event.args.seller.toLowerCase()}:${event.args.castHash}`,
 		}),
 	]);
+
+	// Update user count
+	if (event.args.referrer !== zeroAddress) {
+		const referrer = await User.findMany({
+			where: { id: { startsWith: `${event.args.referrer.toLowerCase()}:` } },
+		});
+		if (referrer.items.length === 0) {
+			await GameStats.update({
+				id: 0n,
+				data: ({ current }) => ({
+					userCount: current.userCount + 1n,
+				}),
+			});
+		}
+	}
 
 	let reqs = [
 		// Update ticket supply + holders
