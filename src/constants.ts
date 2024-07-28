@@ -1,3 +1,6 @@
+export const gameAddress = "0x95Fe2f778BA3DA6116636860bf40aC12C41b813E";
+export const ticketsAddress = "0xedee0c6A3Ef8CEF3cAAa21Df3908379D83012B75";
+
 // in $DEGEN
 // export const priceTiers = [
 // 	{

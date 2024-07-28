@@ -3,11 +3,9 @@ import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
 import { TicketsAbi } from "../abis/TicketsAbi";
 import { GameAbi } from "../abis/GameAbi";
+import { gameAddress, ticketsAddress } from "./constants";
 
 const useMainnet = process.env.USE_MAINNET === "true";
-
-const gameAddress = "0xCAc80268aBae7307C2Aa9C169251EBa876303a51";
-const ticketsAddress = "0x83909330D0E5821F6116C921E94D212239F4631F";
 
 const chain = useMainnet ? base : baseSepolia;
 
