@@ -3,6 +3,7 @@ import { getChannelId, getFeeAmount, setTokenURI } from "./viem";
 import { getActiveTier, neynar } from "./api";
 import pinataSDK from "@pinata/sdk";
 import { zeroAddress } from "viem";
+require("dotenv").config();
 
 const pinata = new pinataSDK({
 	pinataApiKey: process.env.PINATA_API_KEY,
@@ -34,29 +35,10 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		getFeeAmount(event.args.price),
 	]);
 
-	// TODO: upload metadata
-
-	// if (!tokenExists) {
-	// 	const metadata = await pinata.pinJSONToIPFS({
-	// 		name: `Cast by ${cast.author.username} (demo)`,
-	// 		description: `A (test) cast.game ticket purchased via Farcaster. - https://warpcast.com/${cast.author.username}/${cast.hash}`,
-	// 		image: `https://client.warpcast.com/v2/cast-image?castHash=${cast.hash}`,
-	// 		properties: {
-	// 			cast_hash: cast.hash,
-	// 			author_fid: cast.author.fid.toString(),
-	// 		},
-	// 	});
-
-	// 	await setTokenURI(event.args.castHash, metadata.IpfsHash);
-	// 	console.log(
-	// 		`Metadata: set ${metadata.IpfsHash} for castHash: ${event.args.castHash}`
-	// 	);
-	// }
-
 	let reqs = [
-		(await GameStats.findUnique({ id: 0n })) as any,
+		GameStats.findUnique({ id: 0n }) as any,
 		// Update ticket supply
-		await Ticket.upsert({
+		Ticket.upsert({
 			id: event.args.castHash,
 			create: {
 				channelId,
@@ -72,7 +54,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 			}),
 		}),
 		// Increase buyer balance
-		await User.upsert({
+		User.upsert({
 			id: `${event.args.buyer.toLowerCase()}:${event.args.castHash}`,
 			create: {
 				ticketBalance: event.args.amount,
@@ -84,7 +66,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 			}),
 		}),
 		// Track creator fees
-		await User.upsert({
+		User.upsert({
 			id: `${event.args.castCreator.toLowerCase()}:${event.args.castHash}`,
 			create: {
 				ticketBalance: 0n,
@@ -96,7 +78,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 			}),
 		}),
 		// Log transaction
-		await Transaction.create({
+		Transaction.create({
 			id: event.log.id,
 			data: {
 				castHash: event.args.castHash,
@@ -111,7 +93,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 	if (event.args.referrer !== zeroAddress) {
 		reqs.push(
 			// Track referral fees
-			await User.upsert({
+			User.upsert({
 				id: `${event.args.referrer.toLowerCase()}:${event.args.castHash}`,
 				create: {
 					ticketBalance: 0n,
@@ -125,7 +107,26 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		);
 	}
 
+	// upload metadata
+	if (!tokenExists) {
+		const metadata = await pinata.pinJSONToIPFS({
+			name: `Cast by ${cast.author.username} (demo)`,
+			description: `A (test) cast.game ticket purchased via Farcaster. - https://warpcast.com/${cast.author.username}/${cast.hash}`,
+			image: `https://client.warpcast.com/v2/cast-image?castHash=${cast.hash}`,
+			properties: {
+				cast_hash: cast.hash,
+				author_fid: cast.author.fid.toString(),
+			},
+		});
+
+		reqs.push(setTokenURI(event.args.castHash, metadata.IpfsHash));
+		console.log(
+			`Metadata: set ${metadata.IpfsHash} for castHash: ${event.args.castHash}`
+		);
+	}
+
 	const [gameStats] = await Promise.all(reqs);
+
 	if (!gameStats.users.includes(event.args.buyer)) {
 		await GameStats.update({
 			id: 0n,

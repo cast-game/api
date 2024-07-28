@@ -6,8 +6,8 @@ import { GameAbi } from "../abis/GameAbi";
 
 const useMainnet = process.env.USE_MAINNET === "true";
 
-const gameAddress = "0x116affed0a9e9dfb5ee4dd769a8b8a2a476f9927";
-const ticketsAddress = "0xd51cb2fbe71502f0830e9d3a3bd1d90807dc12c6";
+const gameAddress = "0xCAc80268aBae7307C2Aa9C169251EBa876303a51";
+const ticketsAddress = "0x83909330D0E5821F6116C921E94D212239F4631F";
 
 const chain = useMainnet ? base : baseSepolia;
 
