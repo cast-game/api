@@ -43,14 +43,14 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 			create: {
 				channelId,
 				supply: event.args.amount,
-				holders: [event.args.buyer],
+				holders: [event.args.senderFid],
 				activeTier: await getActiveTier(cast),
 			},
 			update: ({ current }) => ({
 				supply: current.supply + event.args.amount,
-				holders: current.holders.includes(event.args.buyer)
+				holders: current.holders.includes(event.args.senderFid)
 					? current.holders
-					: [...current.holders, event.args.buyer],
+					: [...current.holders, event.args.senderFid],
 			}),
 		}),
 		// Increase buyer balance
@@ -83,7 +83,8 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 			data: {
 				castHash: event.args.castHash,
 				type: "buy",
-				sender: event.args.buyer,
+        senderFid: event.args.senderFid,
+				senderAddress: event.args.buyer,
 				price: event.args.price,
 				amount: event.args.amount,
 				timestamp: BigInt(new Date().getTime()),
@@ -125,6 +126,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		);
 	}
 
+  // update game stats (users)
 	const [gameStats] = await Promise.all(reqs);
 
 	if (!gameStats.users.includes(event.args.buyer)) {
@@ -176,7 +178,7 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 				holders:
 					user?.ticketBalance! > event.args.amount
 						? current.holders
-						: current.holders.filter((holder) => holder !== event.args.seller),
+						: current.holders.filter((holder) => holder !== event.args.senderFid),
 			}),
 		}),
 		// Decrease seller balance
@@ -199,7 +201,8 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 			data: {
 				castHash: event.args.castHash,
 				type: "sell",
-				sender: event.args.seller,
+        senderFid: event.args.senderFid,
+				senderAddress: event.args.seller,
 				price: event.args.price,
 				amount: event.args.amount,
 				timestamp: BigInt(new Date().getTime()),
