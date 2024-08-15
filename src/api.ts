@@ -5,7 +5,7 @@ import { Cast } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 export const neynar = new NeynarAPIClient(process.env.NEYNAR_API_KEY!);
 
 export const getActiveTier = async (cast: Cast) => {
-  const user = cast.author;
+	const user = cast.author;
 
 	let tier;
 	if (user.follower_count < 400) {
@@ -24,13 +24,15 @@ export const getActiveTier = async (cast: Cast) => {
 	return BigInt(tier);
 };
 
-export function getPrice(tier: number, supply: number): number {
+export function getPrice(tier: number, supply: number, applyFee?: boolean): bigint {
 	const priceTier = priceTiers[tier]!;
 	const growthRate =
 		Math.log(priceTier.priceAt50 / priceTier.startingPrice) / 50;
 	const newSupply = supply;
 	const pricePerShare =
 		priceTier.startingPrice * Math.exp(growthRate * newSupply);
+	const result = Math.ceil(pricePerShare * 100000) / 100000;
 
-	return Math.ceil(pricePerShare * 100000) / 100000;
+	if (applyFee) return BigInt(result * 0.64);
+	return BigInt(result);
 }

@@ -15,10 +15,11 @@ export default createSchema((p) => ({
 	Ticket: p.createTable({
 		// cast hash
 		id: p.string(),
-		channelId: p.string(),
 		supply: p.bigint(),
 		holders: p.bigint().list(),
 		activeTier: p.bigint(),
+		buyPrice: p.bigint(),
+		sellPrice: p.bigint(),
 	}),
 	Transaction: p.createTable({
 		id: p.string(),

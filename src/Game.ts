@@ -1,6 +1,6 @@
 import { ponder } from "@/generated";
 import { getChannelId, getFeeAmount, setTokenURI } from "./viem";
-import { getActiveTier, neynar } from "./api";
+import { getActiveTier, getPrice, neynar } from "./api";
 import pinataSDK from "@pinata/sdk";
 import { zeroAddress } from "viem";
 require("dotenv").config();
@@ -29,11 +29,13 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		"hash"
 	);
 
-	const [tokenExists, channelId, feeAmount] = await Promise.all([
+	const [tokenExists, feeAmount, activeTier] = await Promise.all([
 		Ticket.findUnique({ id: event.args.castHash }),
-		getChannelId(),
 		getFeeAmount(event.args.price),
+		getActiveTier(cast),
 	]);
+
+	const buyPrice = getPrice(Number(activeTier), Number(event.args.amount) + 1);
 
 	let reqs = [
 		GameStats.findUnique({ id: 0n }) as any,
@@ -41,16 +43,30 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		Ticket.upsert({
 			id: event.args.castHash,
 			create: {
-				channelId,
 				supply: event.args.amount,
 				holders: [event.args.senderFid],
-				activeTier: await getActiveTier(cast),
+				activeTier: activeTier as bigint,
+				buyPrice: getPrice(Number(activeTier), Number(event.args.amount) + 1),
+				sellPrice: getPrice(
+					Number(activeTier),
+					Number(event.args.amount),
+					true
+				),
 			},
 			update: ({ current }) => ({
 				supply: current.supply + event.args.amount,
 				holders: current.holders.includes(event.args.senderFid)
 					? current.holders
 					: [...current.holders, event.args.senderFid],
+				buyPrice: getPrice(
+					Number(current.activeTier),
+					Number(current.supply + event.args.amount + 1n)
+				),
+				sellPrice: getPrice(
+					Number(current.activeTier),
+					Number(current.supply + event.args.amount),
+					true
+				),
 			}),
 		}),
 		// Increase buyer balance
@@ -83,7 +99,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 			data: {
 				castHash: event.args.castHash,
 				type: "buy",
-        senderFid: event.args.senderFid,
+				senderFid: event.args.senderFid,
 				senderAddress: event.args.buyer,
 				price: event.args.price,
 				amount: event.args.amount,
@@ -126,7 +142,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		);
 	}
 
-  // update game stats (users)
+	// update game stats (users)
 	const [gameStats] = await Promise.all(reqs);
 
 	if (!gameStats.users.includes(event.args.buyer)) {
@@ -175,10 +191,21 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 			id: event.args.castHash,
 			data: ({ current }) => ({
 				supply: current.supply - event.args.amount,
+				buyPrice: getPrice(
+					Number(current.activeTier),
+					Number(current.supply - event.args.amount + 1n)
+				),
+				sellPrice: getPrice(
+					Number(current.activeTier),
+					Number(current.supply - event.args.amount),
+					true
+				),
 				holders:
 					user?.ticketBalance! > event.args.amount
 						? current.holders
-						: current.holders.filter((holder) => holder !== event.args.senderFid),
+						: current.holders.filter(
+								(holder) => holder !== event.args.senderFid
+						  ),
 			}),
 		}),
 		// Decrease seller balance
@@ -201,7 +228,7 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 			data: {
 				castHash: event.args.castHash,
 				type: "sell",
-        senderFid: event.args.senderFid,
+				senderFid: event.args.senderFid,
 				senderAddress: event.args.seller,
 				price: event.args.price,
 				amount: event.args.amount,
