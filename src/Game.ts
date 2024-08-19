@@ -35,7 +35,6 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 		getActiveTier(cast),
 	]);
 
-
 	let reqs = [
 		GameStats.findUnique({ id: 0n }) as any,
 		// Update ticket supply
@@ -68,30 +67,6 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 				),
 			}),
 		}),
-		// Increase buyer balance
-		User.upsert({
-			id: `${event.args.buyer.toLowerCase()}:${event.args.castHash}`,
-			create: {
-				ticketBalance: event.args.amount,
-				referralFeesEarned: 0n,
-				creatorFeesEarned: 0n,
-			},
-			update: ({ current }) => ({
-				ticketBalance: current.ticketBalance + event.args.amount,
-			}),
-		}),
-		// Track creator fees
-		User.upsert({
-			id: `${event.args.castCreator.toLowerCase()}:${event.args.castHash}`,
-			create: {
-				ticketBalance: 0n,
-				referralFeesEarned: 0n,
-				creatorFeesEarned: feeAmount,
-			},
-			update: ({ current }) => ({
-				creatorFeesEarned: current.creatorFeesEarned + feeAmount,
-			}),
-		}),
 		// Log transaction
 		Transaction.create({
 			id: event.log.id,
@@ -106,6 +81,49 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 			},
 		}),
 	];
+	if (event.args.buyer === event.args.castCreator) {
+		reqs.push([
+			User.upsert({
+				id: `${event.args.buyer.toLowerCase()}:${event.args.castHash}`,
+				create: {
+					ticketBalance: event.args.amount,
+					referralFeesEarned: 0n,
+					creatorFeesEarned: feeAmount,
+				},
+				update: ({ current }) => ({
+					ticketBalance: current.ticketBalance + event.args.amount,
+					creatorFeesEarned: current.creatorFeesEarned + feeAmount,
+				}),
+			}),
+		]);
+	} else {
+		reqs.push([
+			// Track buyer balance
+			User.upsert({
+				id: `${event.args.buyer.toLowerCase()}:${event.args.castHash}`,
+				create: {
+					ticketBalance: event.args.amount,
+					referralFeesEarned: 0n,
+					creatorFeesEarned: 0n,
+				},
+				update: ({ current }) => ({
+					ticketBalance: current.ticketBalance + event.args.amount,
+				}),
+			}),
+			// Track creator fees
+			User.upsert({
+				id: `${event.args.castCreator.toLowerCase()}:${event.args.castHash}`,
+				create: {
+					ticketBalance: 0n,
+					referralFeesEarned: 0n,
+					creatorFeesEarned: feeAmount,
+				},
+				update: ({ current }) => ({
+					creatorFeesEarned: current.creatorFeesEarned + feeAmount,
+				}),
+			}),
+		]);
+	}
 	if (event.args.referrer !== zeroAddress) {
 		reqs.push(
 			// Track referral fees
@@ -186,7 +204,7 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 
 	let reqs = [
 		// Update ticket supply + holders
-		await Ticket.update({
+		Ticket.update({
 			id: event.args.castHash,
 			data: ({ current }) => ({
 				supply: current.supply - event.args.amount,
@@ -208,21 +226,26 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 			}),
 		}),
 		// Decrease seller balance
-		await User.update({
+		User.update({
 			id: `${event.args.seller.toLowerCase()}:${event.args.castHash}`,
 			data: ({ current }) => ({
 				ticketBalance: current.ticketBalance - event.args.amount,
 			}),
 		}),
 		// Track creator fees
-		await User.update({
+		User.upsert({
 			id: `${event.args.castCreator.toLowerCase()}:${event.args.castHash}`,
-			data: ({ current }) => ({
+			create: {
+				ticketBalance: 0n,
+				referralFeesEarned: 0n,
+				creatorFeesEarned: feeAmount,
+			},
+			update: ({ current }) => ({
 				creatorFeesEarned: current.creatorFeesEarned + feeAmount,
 			}),
 		}),
 		// Log transaction
-		await Transaction.create({
+		Transaction.create({
 			id: event.log.id,
 			data: {
 				castHash: event.args.castHash,
@@ -239,9 +262,14 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 	if (event.args.referrer !== zeroAddress) {
 		reqs.push(
 			// Track referral fees
-			await User.update({
+			User.upsert({
 				id: `${event.args.referrer.toLowerCase()}:${event.args.castHash}`,
-				data: ({ current }) => ({
+				create: {
+					ticketBalance: 0n,
+					referralFeesEarned: feeAmount,
+					creatorFeesEarned: 0n,
+				},
+				update: ({ current }) => ({
 					referralFeesEarned: current.referralFeesEarned + feeAmount,
 				}),
 			})
