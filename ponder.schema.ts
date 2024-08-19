@@ -20,6 +20,7 @@ export default createSchema((p) => ({
 		activeTier: p.bigint(),
 		buyPrice: p.bigint(),
 		sellPrice: p.bigint(),
+		castCreated: p.string(),
 	}),
 	Transaction: p.createTable({
 		id: p.string(),

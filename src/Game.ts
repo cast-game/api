@@ -50,6 +50,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 					Number(event.args.amount),
 					true
 				),
+				castCreated: cast.timestamp
 			},
 			update: ({ current }) => ({
 				supply: current.supply + event.args.amount,
