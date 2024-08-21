@@ -1,50 +1,31 @@
 export const gameAddress = "0x1db3D1955E9De53cAE51EE196A0f56ea6e390DfF";
 export const ticketsAddress = "0xedee0c6A3Ef8CEF3cAAa21Df3908379D83012B75";
 
-// in $DEGEN
-// export const priceTiers = [
-// 	{
-// 		startingPrice: 25, // $0.50
-// 		priceAt50: 4000, // $80
-// 	},
-// 	{
-// 		startingPrice: 50, // $1
-// 		priceAt50: 5000, // $100
-// 	},
-// 	{
-// 		startingPrice: 200, // $4
-// 		priceAt50: 10000, // $200
-// 	},
-// 	{
-// 		startingPrice: 350, // $7
-// 		priceAt50: 12500, // $250
-// 	},
-// 	{
-// 		startingPrice: 500, // $10
-// 		priceAt50: 17500, // $350
-// 	},
-// ];
-
 // in ETH
 export const priceTiers = [
 	{
-			startingPrice: 0.00015, // $0.50
-			priceAt50: 0.01,        // $80
+		basePrice: 0.0001, // $0.25
+		curveExponent: 1.2,
+    scaleFactor: 0.00015,
 	},
-	{
-			startingPrice: 0.0003,  // $1
-			priceAt50: 0.015,        // $100
+  {
+		basePrice: 0.0002, // $0.50
+		curveExponent: 1.25,
+    scaleFactor: 0.00015,
 	},
-	{
-			startingPrice: 0.001,   // $4
-			priceAt50: 0.03,         // $200
+  {
+		basePrice: 0.0004, // $1
+		curveExponent: 1.3,
+    scaleFactor: 0.00015,
 	},
-	{
-			startingPrice: 0.002,  // $7
-			priceAt50: 0.04,       // $250
+  {
+		basePrice: 0.0006, // $1.50
+		curveExponent: 1.3,
+    scaleFactor: 0.0002,
 	},
-	{
-			startingPrice: 0.003,   // $10
-			priceAt50: 0.05,       // $350
+  {
+		basePrice: 0.0008, // $2
+		curveExponent: 1.35,
+    scaleFactor: 0.0002,
 	},
 ];

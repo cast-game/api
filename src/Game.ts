@@ -1,8 +1,8 @@
 import { ponder } from "@/generated";
 import { getChannelId, getFeeAmount, setTokenURI } from "./viem";
-import { getActiveTier, getPrice, neynar } from "./api";
+import { getActiveTier, getPrice, getSellPrice, neynar } from "./api";
 import pinataSDK from "@pinata/sdk";
-import { zeroAddress } from "viem";
+import { formatEther, parseEther, zeroAddress } from "viem";
 require("dotenv").config();
 
 const pinata = new pinataSDK({
@@ -44,13 +44,9 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 				supply: event.args.amount,
 				holders: [event.args.senderFid],
 				activeTier: activeTier as bigint,
-				buyPrice: getPrice(Number(activeTier), Number(event.args.amount) + 1),
-				sellPrice: getPrice(
-					Number(activeTier),
-					Number(event.args.amount),
-					true
-				),
-				castCreated: cast.timestamp
+				buyPrice: getPrice(activeTier, event.args.amount),
+				sellPrice: getSellPrice(activeTier, event.args.amount, 1n),
+				castCreated: cast.timestamp,
 			},
 			update: ({ current }) => ({
 				supply: current.supply + event.args.amount,
@@ -58,13 +54,13 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 					? current.holders
 					: [...current.holders, event.args.senderFid],
 				buyPrice: getPrice(
-					Number(current.activeTier),
-					Number(current.supply + event.args.amount + 1n)
+					current.activeTier,
+					current.supply + event.args.amount
 				),
-				sellPrice: getPrice(
-					Number(current.activeTier),
-					Number(current.supply + event.args.amount),
-					true
+				sellPrice: getSellPrice(
+					current.activeTier,
+					current.supply + event.args.amount,
+					1n
 				),
 			}),
 		}),
@@ -210,13 +206,13 @@ ponder.on("Game:Sold", async ({ event, context }) => {
 			data: ({ current }) => ({
 				supply: current.supply - event.args.amount,
 				buyPrice: getPrice(
-					Number(current.activeTier),
-					Number(current.supply - event.args.amount + 1n)
+					current.activeTier,
+					current.supply - event.args.amount
 				),
-				sellPrice: getPrice(
-					Number(current.activeTier),
-					Number(current.supply - event.args.amount),
-					true
+				sellPrice: getSellPrice(
+					current.activeTier,
+					current.supply - event.args.amount,
+					1n
 				),
 				holders:
 					user?.ticketBalance! > event.args.amount

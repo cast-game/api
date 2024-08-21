@@ -25,19 +25,36 @@ export const getActiveTier = async (cast: Cast) => {
 	return BigInt(tier);
 };
 
-export function getPrice(
-	tier: number,
-	supply: number,
-	applyFee?: boolean
-): bigint {
-	const priceTier = priceTiers[tier]!;
-	const growthRate =
-		Math.log(priceTier.priceAt50 / priceTier.startingPrice) / 50;
-	const newSupply = supply;
-	const pricePerShare =
-		priceTier.startingPrice * Math.exp(growthRate * newSupply);
-	const result = (Math.ceil(pricePerShare * 100000) / 100000)
+export function getPrice(tier: bigint, supply: bigint): bigint {
+	const { basePrice, curveExponent, scaleFactor } = priceTiers[Number(tier)]!;
+	return parseEther(
+		(
+			basePrice +
+			scaleFactor * Math.pow(Number(supply), curveExponent)
+		).toString()
+	);
+}
 
-	if (applyFee) return parseEther((result * 0.64).toString());
-	return parseEther(result.toString());
+export function getBuyPrice(
+	tier: bigint,
+	supply: bigint,
+	amount: bigint
+): bigint {
+	let totalPrice = 0n;
+	for (let i = 0; i < Number(amount); i++) {
+		totalPrice += getPrice(tier, supply + BigInt(i));
+	}
+	return totalPrice;
+}
+
+export function getSellPrice(
+	tier: bigint,
+	supply: bigint,
+	amount: bigint
+): bigint {
+	let totalPrice = 0n;
+	for (let i = 0; i < amount; i++) {
+		totalPrice += getPrice(tier, supply - BigInt(i) - 1n);
+	}
+	return totalPrice;
 }
