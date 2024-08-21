@@ -53,8 +53,12 @@ export function getSellPrice(
 	amount: bigint
 ): bigint {
 	let totalPrice = 0n;
+	if (supply === 0n)
+		return parseEther((priceTiers[Number(tier)]!.basePrice * 0.8).toString());
+
 	for (let i = 0; i < amount; i++) {
+		if (supply < BigInt(i) + 1n) break;
 		totalPrice += getPrice(tier, supply - BigInt(i) - 1n);
 	}
-	return totalPrice;
+	return (totalPrice * 80n) / 100n;
 }
