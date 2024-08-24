@@ -1,5 +1,5 @@
-export const gameAddress = "0x1db3D1955E9De53cAE51EE196A0f56ea6e390DfF";
-export const ticketsAddress = "0xedee0c6A3Ef8CEF3cAAa21Df3908379D83012B75";
+export const gameAddress = "0x9B2839f3a1B76F00dCb23580AfDa8d93FAe334F9";
+export const channelId = "castgame";
 
 // in ETH
 export const priceTiers = [
