@@ -1,5 +1,5 @@
 import { ponder } from "@/generated";
-import { getChannelId, getFeeAmount, setTokenURI } from "./viem";
+import { getFeeAmount } from "./viem";
 import { getActiveTier, getPrice, getSellPrice, neynar } from "./api";
 import pinataSDK from "@pinata/sdk";
 import { formatEther, parseEther, zeroAddress } from "viem";
@@ -191,8 +191,7 @@ ponder.on("Game:Purchased", async ({ event, context }) => {
 ponder.on("Game:Sold", async ({ event, context }) => {
 	const { User, Ticket, Transaction } = context.db;
 
-	const [channelId, feeAmount, user] = await Promise.all([
-		getChannelId(),
+	const [feeAmount, user] = await Promise.all([
 		getFeeAmount(event.args.price),
 		await User.findUnique({
 			id: `${event.args.seller.toLowerCase()}:${event.args.castHash}`,

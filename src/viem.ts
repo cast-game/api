@@ -3,7 +3,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia } from "viem/chains";
 import { TicketsAbi } from "../abis/TicketsAbi";
 import { GameAbi } from "../abis/GameAbi";
-import { gameAddress, ticketsAddress } from "./constants";
+import { gameAddress } from "./constants";
 
 const useMainnet = process.env.USE_MAINNET === "true";
 
@@ -18,11 +18,11 @@ export const client = createPublicClient({
 	transport: http(),
 });
 
-const walletClient = createWalletClient({
-	chain,
-	transport: http(),
-	account,
-});
+// const walletClient = createWalletClient({
+// 	chain,
+// 	transport: http(),
+// 	account,
+// });
 
 export const getFeeAmount = async (amount: bigint) => {
 	const feePercent = await client.readContract({
@@ -34,28 +34,28 @@ export const getFeeAmount = async (amount: bigint) => {
 	return (amount * feePercent) / BigInt(100);
 };
 
-export const getChannelId = async () => {
-	return await client.readContract({
-		address: gameAddress,
-		abi: GameAbi,
-		functionName: "channelId",
-	});
-};
+// export const getChannelId = async () => {
+// 	return await client.readContract({
+// 		address: gameAddress,
+// 		abi: GameAbi,
+// 		functionName: "channelId",
+// 	});
+// };
 
-export const setTokenURI = async (castHash: string, ipfsHash: string) => {
-	const tokenId = await client.readContract({
-		address: ticketsAddress,
-		abi: TicketsAbi,
-		functionName: "castTokenId",
-		args: [castHash],
-	});
+// export const setTokenURI = async (castHash: string, ipfsHash: string) => {
+// 	const tokenId = await client.readContract({
+// 		address: ticketsAddress,
+// 		abi: TicketsAbi,
+// 		functionName: "castTokenId",
+// 		args: [castHash],
+// 	});
 
-	const { request } = await client.simulateContract({
-		account,
-		address: ticketsAddress,
-		abi: TicketsAbi,
-		functionName: "setTokenUri",
-		args: [tokenId, ipfsHash],
-	});
-	await walletClient.writeContract(request);
-};
+// 	const { request } = await client.simulateContract({
+// 		account,
+// 		address: ticketsAddress,
+// 		abi: TicketsAbi,
+// 		functionName: "setTokenUri",
+// 		args: [tokenId, ipfsHash],
+// 	});
+// 	await walletClient.writeContract(request);
+// };
